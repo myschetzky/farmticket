@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}{{ 'Rediger bruger' if user else 'Ny bruger' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Rediger ' ~ user.name if user else 'Ny bruger' }}</h1>
+<form method="post" class="card narrow">
+  {{ csrf() }}
+  <label>Navn * <input name="name" required value="{{ form.get('name') or (user.name if user else '') }}"></label>
+  {% if user %}
+    <p class="small muted">Brugernavn: <strong>{{ user.username }}</strong></p>
+    <label class="check"><input type="checkbox" name="active" value="1" {{ 'checked' if user.active }}> Aktiv (kan logge ind)</label>
+  {% else %}
+    <label>Brugernavn * <input name="username" required value="{{ form.username }}" autocapitalize="none"></label>
+  {% endif %}
+  <label class="check"><input type="checkbox" name="is_admin" value="1" {{ 'checked' if (user and user.is_admin) or form.is_admin }}> Administrator</label>
+  <label>{{ 'Ny adgangskode (lad stå tom for at beholde)' if user else 'Adgangskode *' }}
+    <input type="password" name="password" minlength="6" {{ '' if user else 'required' }} autocomplete="new-password">
+  </label>
+  <label>Gentag adgangskode
+    <input type="password" name="password2" minlength="6" {{ '' if user else 'required' }} autocomplete="new-password">
+  </label>
+  <div class="actions">
+    <button class="btn btn-primary" type="submit">Gem</button>
+    <a class="btn btn-link" href="{{ url_for('auth.users') }}">Annullér</a>
+  </div>
+</form>
+{% endblock %}

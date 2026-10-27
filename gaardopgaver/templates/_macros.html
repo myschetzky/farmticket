@@ -1,0 +1,29 @@
+{% macro prio(p) -%}
+<span class="badge prio-{{ p }}">{{ PRIORITIES[p] }}</span>
+{%- endmacro %}
+
+{% macro status(s) -%}
+<span class="badge status-{{ s }}">{{ STATUS_LABELS[s] }}</span>
+{%- endmacro %}
+
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{# En opgave i en liste #}
+{% macro ticket_card(t, today) -%}
+<a class="ticket-card prio-border-{{ t.priority }}" href="{{ url_for('tickets.ticket_detail', ticket_id=t.id) }}">
+  <div class="ticket-card-head">
+    <span class="ticket-title">#{{ t.id }} {{ t.title }}</span>
+    <span class="badges">{{ prio(t.priority) }} {{ status(t.status) }}</span>
+  </div>
+  <div class="meta">
+    <span>{{ t.category }}{% if t.location %} · {{ t.location }}{% endif %}</span>
+    {% if t.assignee_name %}<span>👤 {{ t.assignee_name }}</span>{% else %}<span class="muted">Ingen ansvarlig</span>{% endif %}
+    {% if t.next_slot %}<span>📅 {{ t.next_slot|dato_tid }}</span>
+    {% elif t.status not in ('udfoert', 'annulleret') %}<span class="warn-text">Ikke planlagt</span>{% endif %}
+    {% if t.estimate_hours %}<span>⏱ {{ (t.planned_hours or 0)|timer }} af {{ t.estimate_hours|timer }}</span>{% endif %}
+    {% if t.due_date %}<span class="{{ 'danger-text' if t.due_date < today and t.status not in ('udfoert', 'annulleret') }}">Deadline {{ t.due_date|dato }}</span>{% endif %}
+  </div>
+</a>
+{%- endmacro %}

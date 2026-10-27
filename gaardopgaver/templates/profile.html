@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<h1>{{ g.user.name }}</h1>
+<div class="two-col">
+  <section class="card">
+    <h2>Kalender på telefonen</h2>
+    <p>Abonnér på planen i telefonens kalender (iPhone: Indstillinger → Kalender → Konti → Tilføj konto → Andet → Tilføj abonneret kalender; Google Kalender: “Fra webadresse”).</p>
+    <label>Alle opgaver
+      <input readonly value="{{ url_for('schedule.ical_feed', token=g.user.ical_token, _external=True) }}" onclick="this.select()">
+    </label>
+    <label>Kun mine tider
+      <input readonly value="{{ url_for('schedule.ical_feed', token=g.user.ical_token, kun_mine=1, _external=True) }}" onclick="this.select()">
+    </label>
+    <p class="small muted">Linket er personligt og kræver ikke login – del det ikke. Telefonen skal kunne nå serveren (samme netværk, eller via fx VPN).</p>
+    <form method="post" onsubmit="return confirm('Det gamle link holder op med at virke. Fortsæt?');">
+      {{ csrf() }}
+      <button class="btn btn-small" name="action" value="new_token">Lav nyt link</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Skift adgangskode</h2>
+    <form method="post">
+      {{ csrf() }}
+      <label>Nuværende adgangskode <input type="password" name="current" required autocomplete="current-password"></label>
+      <label>Ny adgangskode <input type="password" name="password" required minlength="6" autocomplete="new-password"></label>
+      <label>Gentag ny adgangskode <input type="password" name="password2" required minlength="6" autocomplete="new-password"></label>
+      <button class="btn" name="action" value="password">Skift adgangskode</button>
+    </form>
+    <hr>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      {{ csrf() }}
+      <button class="btn btn-danger">Log ud</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

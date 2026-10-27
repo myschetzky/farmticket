@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "_macros.html" import prio, status, csrf %}
+{% block title %}#{{ ticket.id }} {{ ticket.title }}{% endblock %}
+{% block content %}
+<div class="detail-head">
+  <h1>#{{ ticket.id }} {{ ticket.title }}</h1>
+  <div class="badges">{{ prio(ticket.priority) }} {{ status(ticket.status) }}</div>
+</div>
+
+<div class="two-col">
+  <section class="card">
+    <dl class="facts">
+      <dt>Kategori</dt><dd>{{ ticket.category }}</dd>
+      <dt>Sted</dt><dd>{{ ticket.location or '–' }}</dd>
+      <dt>Ansvarlig</dt><dd>{{ ticket.assignee_name or 'Ingen' }}</dd>
+      <dt>Estimeret tid</dt><dd>{{ ticket.estimate_hours|timer if ticket.estimate_hours else '–' }}</dd>
+      <dt>Planlagt tid</dt><dd>{{ (ticket.planned_hours or 0)|timer }}</dd>
+      <dt>Deadline</dt><dd class="{{ 'danger-text' if ticket.due_date and ticket.due_date < today and ticket.status not in ('udfoert', 'annulleret') }}">{{ ticket.due_date|dato if ticket.due_date else '–' }}</dd>
+      <dt>Oprettet</dt><dd>{{ ticket.created_at|dato_tid }} af {{ ticket.creator_name }}</dd>
+      {% if ticket.closed_at %}<dt>Afsluttet</dt><dd>{{ ticket.closed_at|dato_tid }}</dd>{% endif %}
+    </dl>
+    {% if ticket.description %}<div class="description">{{ ticket.description }}</div>{% endif %}
+    <div class="actions">
+      <a class="btn" href="{{ url_for('tickets.ticket_edit', ticket_id=ticket.id) }}">Rediger</a>
+      <form method="post" action="{{ url_for('tickets.ticket_status', ticket_id=ticket.id) }}" class="inline">
+        {{ csrf() }}
+        {% if ticket.status in ('ny', 'planlagt', 'venter') %}
+          <button class="btn" name="status" value="i_gang">Start (i gang)</button>
+        {% endif %}
+        {% if ticket.status not in ('udfoert', 'annulleret') %}
+          {% if ticket.status != 'venter' %}<button class="btn" name="status" value="venter">Sæt til venter</button>{% endif %}
+          <button class="btn btn-success" name="status" value="udfoert">Markér som udført ✓</button>
+        {% else %}
+          <button class="btn" name="status" value="ny">Genåbn</button>
+        {% endif %}
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tid i kalenderen</h2>
+    {% for s in slots %}
+      <div class="slot-row {{ 'past' if s.ends_at < now }}">
+        <a href="{{ url_for('schedule.slot_edit', slot_id=s.id, next=request.path) }}">
+          <strong>{{ s.starts_at|dato }} kl. {{ s.starts_at|tid }}–{{ s.ends_at|tid }}</strong>
+        </a>
+        <span class="meta">{% if s.user_name %}👤 {{ s.user_name }}{% endif %}{% if s.note %} · {{ s.note }}{% endif %}</span>
+      </div>
+    {% else %}
+      <p class="muted">Ingen tid planlagt endnu.</p>
+    {% endfor %}
+    {% if ticket.status not in ('udfoert', 'annulleret') %}
+    <a class="btn btn-primary" href="{{ url_for('schedule.slot_new', opgave=ticket.id, next=request.path) }}">+ Planlæg tid</a>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card" id="kommentarer">
+  <h2>Noter og historik</h2>
+  <ul class="timeline">
+  {% for c in comments %}
+    <li class="{{ 'event' if c.is_event else 'comment' }}">
+      <span class="when">{{ c.created_at|dato_tid }}{% if c.user_name %} · {{ c.user_name }}{% endif %}</span>
+      <div class="body">{{ c.body }}</div>
+    </li>
+  {% endfor %}
+  </ul>
+  <form method="post" action="{{ url_for('tickets.ticket_comment', ticket_id=ticket.id) }}">
+    {{ csrf() }}
+    <label>Tilføj note
+      <textarea name="body" rows="3" required placeholder="Fx: Sikringen sprang igen efter regn. Samledåse ved lampe 3 var fugtig."></textarea>
+    </label>
+    <button class="btn" type="submit">Gem note</button>
+  </form>
+</section>
+
+{% if g.user.is_admin %}
+<form method="post" action="{{ url_for('tickets.ticket_delete', ticket_id=ticket.id) }}" class="danger-zone"
+      onsubmit="return confirm('Slet opgaven permanent, inkl. kalendertider og noter?');">
+  {{ csrf() }}
+  <button class="btn btn-danger btn-small" type="submit">Slet opgave</button>
+  <span class="small muted">Brug hellere status ‘Annulleret’, så historikken bevares.</span>
+</form>
+{% endif %}
+{% endblock %}

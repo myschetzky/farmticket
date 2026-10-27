@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Gårdopgaver{% endblock %} · Gårdopgaver</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% if g.user %}
+<header class="topbar">
+  <a class="brand" href="{{ url_for('tickets.dashboard') }}">Gårdopgaver</a>
+  <nav>
+    <a href="{{ url_for('tickets.dashboard') }}" class="{{ 'active' if request.endpoint == 'tickets.dashboard' }}">Overblik</a>
+    <a href="{{ url_for('tickets.ticket_list') }}" class="{{ 'active' if request.endpoint in ('tickets.ticket_list', 'tickets.ticket_detail', 'tickets.ticket_edit') }}">Opgaver</a>
+    <a href="{{ url_for('schedule.week') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') }}">Kalender</a>
+    {% if g.user.is_admin %}<a href="{{ url_for('auth.users') }}" class="{{ 'active' if request.endpoint in ('auth.users', 'auth.user_new', 'auth.user_edit') }}">Brugere</a>{% endif %}
+    <a href="{{ url_for('auth.profile') }}" class="{{ 'active' if request.endpoint == 'auth.profile' }}">{{ g.user.name }}</a>
+  </nav>
+  <a class="btn btn-primary new-ticket" href="{{ url_for('tickets.ticket_new') }}">+ Ny opgave</a>
+</header>
+{% endif %}
+<main class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

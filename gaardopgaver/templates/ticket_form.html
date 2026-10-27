@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}{{ 'Rediger opgave' if ticket else 'Ny opgave' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Rediger opgave #' ~ ticket.id if ticket else 'Ny opgave' }}</h1>
+<form method="post" class="card form-grid">
+  {{ csrf() }}
+  <label class="span-2">Titel *
+    <input name="title" required maxlength="200" value="{{ form.title }}" placeholder="Fx Skifte knækkede stolper på ridebane" {{ 'autofocus' if not ticket }}>
+  </label>
+  <label class="span-2">Beskrivelse
+    <textarea name="description" rows="5" placeholder="Hvad er problemet? Hvad er prøvet? Hvilke materialer skal bruges?">{{ form.description }}</textarea>
+  </label>
+  <label>Kategori *
+    <select name="category" required>
+      <option value="">Vælg…</option>
+      {% for c in CATEGORIES %}<option {{ 'selected' if form.category == c }}>{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Sted
+    <input name="location" list="locations" value="{{ form.location }}" placeholder="Fx Ridebane, Carport, Stald">
+    <datalist id="locations">{% for l in locations %}<option value="{{ l }}">{% endfor %}</datalist>
+  </label>
+  <fieldset class="span-2 priority-picker">
+    <legend>Prioritet *</legend>
+    {% for p, label in PRIORITIES.items() %}
+    <label class="prio-option prio-border-{{ p }}">
+      <input type="radio" name="priority" value="{{ p }}" {{ 'checked' if form.priority == p|string }}>
+      <strong>{{ label }}</strong><span class="small muted">{{ priority_help[p] }}</span>
+    </label>
+    {% endfor %}
+  </fieldset>
+  <label>Ansvarlig
+    <select name="assignee_id">
+      <option value="">Ingen endnu</option>
+      {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if form.assignee_id == u.id|string }}>{{ u.name }}</option>{% endfor %}
+    </select>
+  </label>
+  {% if ticket %}
+  <label>Status
+    <select name="status">
+      {% for key, label in statuses %}<option value="{{ key }}" {{ 'selected' if form.status == key }}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  {% endif %}
+  <label>Estimeret tid (timer)
+    <input name="estimate_hours" inputmode="decimal" value="{{ form.estimate_hours }}" placeholder="Fx 3 eller 1,5">
+  </label>
+  <label>Deadline (valgfri)
+    <input type="date" name="due_date" value="{{ form.due_date }}">
+  </label>
+  <div class="span-2 actions">
+    <button class="btn btn-primary" type="submit">{{ 'Gem ændringer' if ticket else 'Opret opgave' }}</button>
+    {% if not ticket %}<button class="btn" type="submit" name="plan_now" value="1">Opret og planlæg tid</button>{% endif %}
+    <a class="btn btn-link" href="{{ url_for('tickets.ticket_detail', ticket_id=ticket.id) if ticket else url_for('tickets.ticket_list') }}">Annullér</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Kalender uge {{ week_no }}{% endblock %}
+{% block content %}
+<div class="cal-head">
+  <h1>Uge {{ week_no }} <span class="muted small">{{ start|dato(with_weekday=False) }} – {{ end|dato(with_weekday=False) }}</span></h1>
+  <div class="cal-nav">
+    <a class="btn" href="{{ url_for('schedule.week', dato=prev_week, bruger=user_filter or None) }}">← Forrige</a>
+    <a class="btn" href="{{ url_for('schedule.week', dato=this_week, bruger=user_filter or None) }}">I dag</a>
+    <a class="btn" href="{{ url_for('schedule.week', dato=next_week, bruger=user_filter or None) }}">Næste →</a>
+    <form method="get" class="inline">
+      <input type="hidden" name="dato" value="{{ start.isoformat() }}">
+      <select name="bruger" onchange="this.form.submit()">
+        <option value="">Alle personer</option>
+        {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if user_filter == u.id|string }}>{{ u.name }}</option>{% endfor %}
+      </select>
+      <noscript><button class="btn">Vis</button></noscript>
+    </form>
+    <a class="btn btn-primary" href="{{ url_for('schedule.slot_new', dato=plan_date) }}">+ Planlæg tid</a>
+  </div>
+</div>
+<p class="muted small hide-mobile">Klik i et tomt felt for at planlægge en opgave på det tidspunkt. Klik på en blok for at flytte eller ændre den.</p>
+
+<div class="cal-layout">
+  {# --- Ugegitter (skærm/tablet) --- #}
+  <div class="week-grid" style="--hours: {{ hours|length }}">
+    <div class="wg-corner"></div>
+    {% for d in days %}
+      <div class="wg-dayhead {{ 'today' if d.is_today }}">
+        {{ d.label }}{% if d.hours %}<span class="small muted"> · {{ d.hours|timer }}</span>{% endif %}
+      </div>
+    {% endfor %}
+    <div class="wg-times">
+      {% for h in hours %}<div class="wg-time">{{ '%02d' % h }}:00</div>{% endfor %}
+    </div>
+    {% for d in days %}
+      <div class="wg-day {{ 'today' if d.is_today }}">
+        {% for h in hours %}
+          <a class="wg-cell" href="{{ url_for('schedule.slot_new', dato=d.date.isoformat(), fra='%02d:00' % h) }}" title="Planlæg {{ d.label }} kl. {{ '%02d' % h }}:00"></a>
+        {% endfor %}
+        {% for b in d.blocks %}
+          <a class="wg-block prio-bg-{{ b.slot.priority }} {{ 'done' if b.slot.status in ('udfoert', 'annulleret') }}"
+             style="top: {{ '%.3f' % b.top }}%; height: {{ '%.3f' % b.height }}%; left: {{ '%.3f' % b.left }}%; width: {{ '%.3f' % b.width }}%;"
+             href="{{ url_for('schedule.slot_edit', slot_id=b.slot.id) }}"
+             title="{{ b.slot.title }} ({{ b.slot.starts_at|tid }}–{{ b.slot.ends_at|tid }}{{ ', ' ~ b.slot.user_name if b.slot.user_name }})">
+            <span class="wg-block-time">{{ b.slot.starts_at|tid }}–{{ b.slot.ends_at|tid }}</span>
+            <span class="wg-block-title">{{ b.slot.title }}</span>
+            {% if b.slot.user_name %}<span class="wg-block-user">{{ b.slot.user_name }}</span>{% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {# --- Dagsliste (mobil) --- #}
+  <div class="agenda">
+    {% for d in days %}
+      <div class="agenda-day {{ 'today' if d.is_today }}">
+        <div class="agenda-dayhead">
+          <strong>{{ d.date|dato }}</strong>
+          <a class="btn btn-small" href="{{ url_for('schedule.slot_new', dato=d.date.isoformat()) }}">+</a>
+        </div>
+        {% for s in d.slots %}
+          <a class="slot-row prio-border-{{ s.priority }}" href="{{ url_for('schedule.slot_edit', slot_id=s.id) }}">
+            <strong>{{ s.starts_at|tid }}–{{ s.ends_at|tid }}</strong> {{ s.title }}
+            {% if s.user_name %}<span class="meta">👤 {{ s.user_name }}</span>{% endif %}
+          </a>
+        {% else %}
+          <p class="muted small">Intet planlagt</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <aside class="card cal-side">
+    <h2>Mangler tid</h2>
+    <p class="small muted">Åbne opgaver uden kommende tid, vigtigste først.</p>
+    {% for t in unplanned %}
+      <div class="side-ticket prio-border-{{ t.priority }}">
+        <a href="{{ url_for('tickets.ticket_detail', ticket_id=t.id) }}">{{ t.title }}</a>
+        <div class="small muted">{{ PRIORITIES[t.priority] }}{% if t.estimate_hours %} · {{ t.estimate_hours|timer }}{% endif %}{% if t.due_date %} · deadline {{ t.due_date|dato(with_weekday=False) }}{% endif %}</div>
+        <a class="btn btn-small" href="{{ url_for('schedule.slot_new', opgave=t.id, dato=plan_date) }}">Planlæg</a>
+      </div>
+    {% else %}
+      <p class="muted small">Alt er planlagt. 👍</p>
+    {% endfor %}
+  </aside>
+</div>
+{% endblock %}

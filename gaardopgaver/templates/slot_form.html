@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}{{ 'Rediger tid' if slot else 'Planlæg tid' }}{% endblock %}
+{% block content %}
+<h1>{{ 'Rediger tid' if slot else 'Planlæg tid' }}</h1>
+<form method="post" class="card form-grid">
+  {{ csrf() }}
+  <label class="span-2">Opgave *
+    <select name="ticket_id" required>
+      <option value="">Vælg opgave…</option>
+      {% for t in tickets %}
+      <option value="{{ t.id }}" {{ 'selected' if form.ticket_id == t.id|string }}>[{{ PRIORITIES[t.priority] }}] #{{ t.id }} {{ t.title }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Dato *<input type="date" name="date" required value="{{ form.date }}"></label>
+  <label>Udføres af
+    <select name="user_id">
+      <option value="">Ikke fastlagt</option>
+      {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if form.user_id == u.id|string }}>{{ u.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Fra *<input type="time" name="start" required value="{{ form.start }}" step="900"></label>
+  <label>Til *<input type="time" name="end" required value="{{ form.end }}" step="900"></label>
+  <label class="span-2">Note
+    <input name="note" value="{{ form.note }}" placeholder="Fx: Hent stolper hos tømmerhandel først">
+  </label>
+  <div class="span-2 actions">
+    <button class="btn btn-primary" type="submit">{{ 'Gem' if slot else 'Læg i kalenderen' }}</button>
+    {% if slot %}<a class="btn" href="{{ url_for('tickets.ticket_detail', ticket_id=slot.ticket_id) }}">Gå til opgaven</a>{% endif %}
+    <a class="btn btn-link" href="{{ cancel_url }}">Annullér</a>
+  </div>
+</form>
+{% if slot %}
+<form method="post" action="{{ url_for('schedule.slot_delete', slot_id=slot.id, next=request.args.get('next')) }}" class="danger-zone"
+      onsubmit="return confirm('Fjern denne tid fra kalenderen?');">
+  {{ csrf() }}
+  <button class="btn btn-danger btn-small" type="submit">Fjern fra kalenderen</button>
+</form>
+{% endif %}
+{% endblock %}

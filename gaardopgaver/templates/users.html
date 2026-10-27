@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Brugere{% endblock %}
+{% block content %}
+<div class="detail-head">
+  <h1>Brugere</h1>
+  <a class="btn btn-primary" href="{{ url_for('auth.user_new') }}">+ Ny bruger</a>
+</div>
+<table class="table card">
+  <thead><tr><th>Navn</th><th>Brugernavn</th><th>Rolle</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr class="{{ 'muted' if not u.active }}">
+      <td>{{ u.name }}</td>
+      <td>{{ u.username }}</td>
+      <td>{{ 'Administrator' if u.is_admin else 'Bruger' }}</td>
+      <td>{{ 'Aktiv' if u.active else 'Deaktiveret' }}</td>
+      <td><a href="{{ url_for('auth.user_edit', user_id=u.id) }}">Rediger</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="small muted">Alle brugere kan oprette, redigere og planlægge opgaver. Administratorer kan desuden administrere brugere og slette opgaver.</p>
+{% endblock %}

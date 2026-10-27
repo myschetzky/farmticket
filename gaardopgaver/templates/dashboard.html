@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import prio, status, ticket_card %}
+{% block title %}Overblik{% endblock %}
+{% block content %}
+<h1>Overblik</h1>
+
+<div class="stats">
+  {% for p, label in PRIORITIES.items() %}
+  <a class="stat prio-border-{{ p }}" href="{{ url_for('tickets.ticket_list', prioritet=p) }}">
+    <span class="stat-num">{{ counts.get(p, 0) }}</span><span class="stat-label">{{ label }}</span>
+  </a>
+  {% endfor %}
+  <a class="stat" href="{{ url_for('tickets.ticket_list', status='venter') }}">
+    <span class="stat-num">{{ waiting }}</span><span class="stat-label">Venter</span>
+  </a>
+</div>
+
+{% if overdue %}
+<section>
+  <h2 class="danger-text">Over deadline</h2>
+  {% for t in overdue %}{{ ticket_card(t, today.isoformat()) }}{% endfor %}
+</section>
+{% endif %}
+
+<div class="two-col">
+  <section>
+    <h2>I dag – {{ today|dato }}</h2>
+    {% for s in today_slots %}
+      <a class="slot-row prio-border-{{ s.priority }}" href="{{ url_for('tickets.ticket_detail', ticket_id=s.ticket_id) }}">
+        <strong>{{ s.starts_at|tid }}–{{ s.ends_at|tid }}</strong> {{ s.title }}
+        <span class="meta">{% if s.user_name %}👤 {{ s.user_name }}{% endif %} {{ status(s.status) }}</span>
+      </a>
+    {% else %}
+      <p class="muted">Intet planlagt i dag.</p>
+    {% endfor %}
+
+    <h2>De næste 7 dage</h2>
+    {% for s in later_slots %}
+      <a class="slot-row prio-border-{{ s.priority }}" href="{{ url_for('tickets.ticket_detail', ticket_id=s.ticket_id) }}">
+        <strong>{{ s.starts_at|dato }} {{ s.starts_at|tid }}–{{ s.ends_at|tid }}</strong> {{ s.title }}
+        <span class="meta">{% if s.user_name %}👤 {{ s.user_name }}{% endif %}</span>
+      </a>
+    {% else %}
+      <p class="muted">Intet planlagt de næste dage. <a href="{{ url_for('schedule.week') }}">Gå til kalenderen</a>.</p>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Mangler tid i kalenderen</h2>
+    <p class="muted small">Åbne opgaver uden kommende tid – vigtigste først.</p>
+    {% for t in unplanned %}
+      <div class="unplanned-row">
+        {{ ticket_card(t, today.isoformat()) }}
+        <a class="btn btn-small" href="{{ url_for('schedule.slot_new', opgave=t.id) }}">Planlæg</a>
+      </div>
+    {% else %}
+      <p class="muted">Alle åbne opgaver har tid i kalenderen. 👍</p>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

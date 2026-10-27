@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import ticket_card %}
+{% block title %}Opgaver{% endblock %}
+{% block content %}
+<h1>Opgaver</h1>
+
+<form class="filters" method="get">
+  <input type="search" name="q" value="{{ f.q }}" placeholder="Søg i titel, beskrivelse, sted">
+  <select name="status">
+    <option value="aabne" {{ 'selected' if f.status == 'aabne' }}>Åbne opgaver</option>
+    <option value="alle" {{ 'selected' if f.status == 'alle' }}>Alle</option>
+    {% for key, label in statuses %}
+    <option value="{{ key }}" {{ 'selected' if f.status == key }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="prioritet">
+    <option value="">Alle prioriteter</option>
+    {% for p, label in PRIORITIES.items() %}
+    <option value="{{ p }}" {{ 'selected' if f.prioritet == p|string }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="kategori">
+    <option value="">Alle kategorier</option>
+    {% for c in CATEGORIES %}<option {{ 'selected' if f.kategori == c }}>{{ c }}</option>{% endfor %}
+  </select>
+  <select name="ansvarlig">
+    <option value="">Alle ansvarlige</option>
+    <option value="mig" {{ 'selected' if f.ansvarlig == 'mig' }}>Mine opgaver</option>
+    <option value="ingen" {{ 'selected' if f.ansvarlig == 'ingen' }}>Uden ansvarlig</option>
+    {% for u in users %}<option value="{{ u.id }}" {{ 'selected' if f.ansvarlig == u.id|string }}>{{ u.name }}</option>{% endfor %}
+  </select>
+  <button class="btn" type="submit">Filtrér</button>
+  <a class="btn btn-link" href="{{ url_for('tickets.ticket_list') }}">Nulstil</a>
+</form>
+
+<p class="muted small">{{ tickets|length }} opgave{{ 'r' if tickets|length != 1 }} · sorteret efter prioritet, deadline og alder</p>
+{% for t in tickets %}
+  {{ ticket_card(t, today) }}
+{% else %}
+  <p class="muted">Ingen opgaver matcher. <a href="{{ url_for('tickets.ticket_new') }}">Opret en ny opgave</a>.</p>
+{% endfor %}
+{% endblock %}

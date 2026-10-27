@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Opsætning{% endblock %}
+{% block content %}
+<div class="narrow card">
+  <h1>Velkommen til Gårdopgaver</h1>
+  <p>Systemet er ikke sat op endnu. Opret den første bruger – den bliver administrator og kan bagefter oprette resten af husstanden.</p>
+  <form method="post">
+    {{ csrf() }}
+    <label>Navn <input name="name" required value="{{ form.name }}" placeholder="Fx Niklas"></label>
+    <label>Brugernavn <input name="username" required value="{{ form.username }}" autocapitalize="none" autocomplete="username"></label>
+    <label>Adgangskode <input type="password" name="password" required minlength="6" autocomplete="new-password"></label>
+    <label>Gentag adgangskode <input type="password" name="password2" required minlength="6" autocomplete="new-password"></label>
+    <label class="check"><input type="checkbox" name="examples" value="1" checked> Opret de tre eksempelopgaver (ridebanelys, stolper, julelys)</label>
+    <button class="btn btn-primary" type="submit">Opret og log ind</button>
+  </form>
+</div>
+{% endblock %}
