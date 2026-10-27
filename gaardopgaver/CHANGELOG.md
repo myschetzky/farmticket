@@ -1,5 +1,10 @@
 # Ændringslog
 
+## 1.1.1
+- Rettet: siden viste "404: Not Found" i Home Assistant. Appen startede uden sine
+  miljøvariabler (s6-overlay nulstiller dem) og troede derfor, at den kørte uden for Home Assistant.
+  Data gemmes nu også altid i appens datamappe.
+
 ## 1.1.0
 - Kører som Home Assistant-app med sidepanel (Ingress) for alle brugere
 - Automatisk login med Home Assistant-brugeren; Home Assistant-administratorer er administratorer

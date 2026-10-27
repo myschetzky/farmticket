@@ -3,18 +3,15 @@ FROM ghcr.io/home-assistant/base-python:3.13-alpine3.22
 ARG BUILD_VERSION
 ARG BUILD_ARCH
 
-ENV GAARD_HA=1 \
-    GAARD_DATA_DIR=/data \
-    GAARD_PORT=8099 \
-    PYTHONUNBUFFERED=1
-
 WORKDIR /app
 COPY app/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ .
+COPY run.sh /run.sh
+RUN chmod a+x /run.sh
 
-CMD ["python3", "run.py", "--port", "8099"]
+CMD ["/run.sh"]
 
 LABEL \
     io.hass.name="Gårdopgaver" \

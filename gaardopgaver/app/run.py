@@ -7,9 +7,16 @@
 
 import argparse
 import logging
+import os
 import socket
 
-from gaardopgaver import create_app
+# Kører vi som Home Assistant-app (options.json findes altid dér), så slå Home Assistant-tilstand
+# til, selv hvis miljøvariablerne mangler – ellers ville data blive gemt uden for /data.
+if os.path.exists("/data/options.json"):
+    os.environ.setdefault("GAARD_HA", "1")
+    os.environ.setdefault("GAARD_DATA_DIR", "/data")
+
+from gaardopgaver import create_app  # noqa: E402
 
 
 def main():
