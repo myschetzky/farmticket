@@ -54,3 +54,20 @@ CREATE TABLE IF NOT EXISTS comments (
     created_at TEXT    NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_comments_ticket ON comments(ticket_id);
+
+-- Simple nøgle/værdi-indstillinger (fx hvilken kalender der synkroniseres til).
+CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT
+);
+
+-- Hvilke tidsblokke der ligger som begivenheder i den synkroniserede kalender.
+-- Ingen fremmednøgle: rækken skal blive, når en tid slettes, så begivenheden også kan slettes.
+CREATE TABLE IF NOT EXISTS calendar_events (
+    slot_id     INTEGER PRIMARY KEY,
+    entity_id   TEXT NOT NULL,
+    uid         TEXT,
+    fingerprint TEXT NOT NULL,
+    starts_at   TEXT NOT NULL,
+    ends_at     TEXT NOT NULL
+);

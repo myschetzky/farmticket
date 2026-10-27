@@ -21,6 +21,7 @@ from flask import abort, current_app, g, request, session
 from werkzeug.security import generate_password_hash
 
 from . import db
+from .calendar_sync import CalendarSync, HAClient
 from .constants import OPEN_STATUSES, PRIORITIES
 from .dates import DT_FORMAT, WEEKDAYS_SHORT, fmt_time, now_str
 
@@ -206,7 +207,7 @@ def build_sensors(conn, now=None):
 
 
 class SensorPublisher(threading.Thread):
-    """Sender sensorer til Home Assistant ved ændringer og hvert 5. minut."""
+    """Sender sensorer og synkroniserer kalenderen ved ændringer og hvert 5. minut."""
 
     def __init__(self, db_path, token, calendar_entity=None):
         super().__init__(daemon=True, name="ha-sensorer")
@@ -226,10 +227,21 @@ class SensorPublisher(threading.Thread):
                 self.publish(refresh_calendar=changed)
             except Exception:  # noqa: BLE001 – må aldrig stoppe tråden
                 log.exception("Kunne ikke opdatere sensorer i Home Assistant")
+            try:
+                self.sync_calendar()
+            except Exception:  # noqa: BLE001
+                log.exception("Kalendersynkronisering fejlede")
             changed = self._changed.wait(PUBLISH_INTERVAL)
             if changed:
                 self._changed.wait(2)  # saml flere hurtige ændringer i én opdatering
                 self._changed.clear()
+
+    def sync_calendar(self):
+        conn = sqlite3.connect(self.db_path, timeout=10)
+        try:
+            CalendarSync(conn, HAClient(self.token)).run()
+        finally:
+            conn.close()
 
     def _call(self, method, path, payload=None):
         req = urllib.request.Request(
@@ -275,6 +287,7 @@ def init_app(app):
         options = load_options()
         publisher = SensorPublisher(app.config["DATABASE"], token, options.get("kalender_entitet") or None)
         publisher.start()
+        app.extensions["ha_publisher"] = publisher
 
         @app.after_request
         def _notify(response):

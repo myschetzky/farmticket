@@ -10,7 +10,8 @@ Et lille ticket-system til landejendommen. Opret opgaver, der skal udbedres, pri
 - **I Home Assistant:**
   - Sidepanel for alle brugere og automatisk login med Home Assistant-brugeren
   - Sensorer: åbne og akutte opgaver, dagens plan og næste opgave
-  - Kalenderkort via Remote Calendar
+  - Planlagte tider lægges automatisk i en valgfri kalender, fx jeres Google Kalender
+  - Kalenderkort på dashboardet
 - Hele brugerfladen er på dansk
 
 ## Installation i Home Assistant
@@ -35,13 +36,17 @@ Installér appen **Samba share** eller **Advanced SSH**, og kopiér mappen `gaar
 
 Under appens fane **Dokumentation** ligger et færdigt dashboardkort i YAML (se også [`gaardopgaver/DOCS.md`](gaardopgaver/DOCS.md)). Det viser akutte og åbne opgaver, dagens plan og næste opgave. Der er også vejledning til kalenderkortet og et eksempel på en automatisering, der giver besked ved akutte opgaver.
 
+### Google Kalender
+
+Forbind Google Kalender med Home Assistant (integrationen **Google Calendar**). Vælg derefter kalenderen under **Gårdopgaver → Indstillinger**. Alle planlagte tider lægges så ind som begivenheder og flyttes og slettes automatisk, når de ændres i Gårdopgaver. Det virker med alle kalendere i Home Assistant, der kan oprette og slette begivenheder, fx også Local Calendar. Detaljer står i [`gaardopgaver/DOCS.md`](gaardopgaver/DOCS.md).
+
 ## Data og backup
 
 Data ligger i appens egen datamappe (SQLite) og kommer automatisk med i Home Assistants almindelige backups. Gendannelse sker også dér. Appen stoppes et øjeblik under backup, så databasen gemmes konsistent.
 
 ## Teknologi
 
-**Python + Flask + SQLite**, med server-renderede sider og ét stylesheet. Der er ingen JavaScript-build, ingen ekstern database og kun to afhængigheder: Flask og waitress.
+**Python + Flask + SQLite**, med server-renderede sider og ét stylesheet. Der er ingen JavaScript-build, ingen ekstern database og kun tre afhængigheder: Flask, waitress og websocket-client (til kalendersynkronisering via Home Assistant).
 
 I Home Assistant kører det i en lille container baseret på Home Assistants officielle Python-image. Integrationen ligger samlet i `ha.py`:
 - **Ingress:** Home Assistant viser siderne og står for login. Kun forespørgsler fra Home Assistants ingress-proxy får adgang.
@@ -80,6 +85,8 @@ gaardopgaver/                   Home Assistant-appen
     gaardopgaver/
       __init__.py               app-opsætning, login-krav, CSRF-beskyttelse
       ha.py                     Home Assistant: ingress, automatisk login, sensorer
+      calendar_sync.py          synkronisering til valgfri kalender (fx Google) via Home Assistant
+      settings.py               indstillinger (valg af kalender)
       constants.py              prioriteter, statusser, kategorier, eksempelopgaver
       schema.sql, db.py         database
       auth.py                   login, brugere og profil

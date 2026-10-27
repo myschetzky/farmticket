@@ -14,7 +14,24 @@ Opgaver (tickets) til landejendommen: opret ting, der skal udbedres, prioritér 
 | `sensor.gaardopgaver_akutte_opgaver` | Antal akutte opgaver | `opgaver` (titler) |
 | `sensor.gaardopgaver_naeste_opgave` | Titel på næste planlagte opgave | `start`, `slut`, `person`, `sted`, `prioritet` |
 
+- **Google Kalender eller anden kalender:** Planlagte tider kan lægges direkte ind i jeres egen kalender, se nedenfor.
 - **Data og backup:** Alt gemmes i appens egen datamappe og kommer automatisk med i Home Assistants backups. Appen stoppes et øjeblik under backup, så databasen altid gemmes i en hel og konsistent tilstand.
+
+## Google Kalender (eller en anden kalender)
+
+Gårdopgaver kan lægge alle planlagte tider ind i en kalender, som Home Assistant kender. Det kan fx være jeres fælles Google Kalender. Flyttes eller slettes en tid i Gårdopgaver, følger kalenderen med inden for få sekunder.
+
+1. **Forbind Google Kalender med Home Assistant**, hvis det ikke allerede er gjort: **Indstillinger → Enheder og tjenester → Tilføj integration → Google Calendar**. Home Assistant guider dig gennem det. Første gang skal der oprettes en Google Cloud-nøgle, og [Home Assistants vejledning](https://www.home-assistant.io/integrations/google/) viser trinene. Hver Google-kalender bliver en entitet, fx `calendar.familie`.
+2. Åbn **Gårdopgaver → Indstillinger** (kun administratorer), vælg kalenderen, og tryk **Gem**.
+
+Begivenhederne får opgavens titel og navnet på den, der udfører den, fx *Skifte knækkede stolper på ridebane (Niklas)*. Beskrivelsen viser prioritet og note, og opgavens sted bliver sted.
+
+Godt at vide:
+- **Hvilke kalendere kan vælges:** Alle kalendere i Home Assistant, som kan både oprette og slette begivenheder: Google Calendar og Local Calendar. CalDAV-kalendere (fx iCloud) kan kun oprette og vises derfor som "kan ikke bruges".
+- **Google skal have skriveadgang:** Er Google-integrationen sat op med kun læseadgang, kan kalenderen ikke vælges. Det ændres under integrationens **Konfigurér** → *Read/Write access*.
+- **Ændringer laves i Gårdopgaver:** En begivenhed, der ændres eller slettes direkte i Google, bliver ikke ført tilbage til Gårdopgaver.
+- **Kalenderen styres af Gårdopgaver:** Slås synkroniseringen fra, eller vælges en anden kalender, fjernes Gårdopgavers begivenheder fra den gamle kalender. Andre begivenheder røres aldrig.
+- **Gamle tider:** Tider, der sluttede for mere end 30 dage siden, lægges ikke ind.
 
 ## Kort til dashboardet
 
@@ -64,7 +81,7 @@ cards:
 
 ### Kalenderkort (valgfrit)
 
-Planen kan også vises i Home Assistants eget kalenderkort:
+Bruger I synkronisering til Google Kalender (se ovenfor), kan kalenderkortet bare vise den kalender, fx `calendar.familie`. Ellers kan planen hentes direkte fra Gårdopgaver:
 
 1. Åbn Gårdopgaver → dit navn øverst til højre. Kopiér adressen under **Alle opgaver**. Den ligner `http://local-gaardopgaver:8099/kalender/feed/….ics`.
 2. Gå til **Indstillinger → Enheder og tjenester → Tilføj integration → Remote Calendar**. Kald kalenderen **Gårdopgaver**, og indsæt adressen.

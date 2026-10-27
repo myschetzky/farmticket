@@ -15,6 +15,7 @@
     <a href="{{ url_for('tickets.ticket_list') }}" class="{{ 'active' if request.endpoint in ('tickets.ticket_list', 'tickets.ticket_detail', 'tickets.ticket_edit') }}">Opgaver</a>
     <a href="{{ url_for('schedule.week') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') }}">Kalender</a>
     {% if g.user.is_admin %}<a href="{{ url_for('auth.users') }}" class="{{ 'active' if request.endpoint in ('auth.users', 'auth.user_new', 'auth.user_edit') }}">Brugere</a>{% endif %}
+    {% if g.user.is_admin and HA_MODE %}<a href="{{ url_for('settings.settings') }}" class="{{ 'active' if request.endpoint == 'settings.settings' }}">Indstillinger</a>{% endif %}
     <a href="{{ url_for('auth.profile') }}" class="{{ 'active' if request.endpoint == 'auth.profile' }}">{{ g.user.name }}</a>
   </nav>
   <a class="btn btn-primary new-ticket" href="{{ url_for('tickets.ticket_new') }}">+ Ny opgave</a>

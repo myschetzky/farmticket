@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "_macros.html" import csrf %}
+{% block title %}Indstillinger{% endblock %}
+{% block content %}
+<h1>Indstillinger</h1>
+
+<section class="card" style="max-width: 720px">
+  <h2>Kalender</h2>
+  {% if not available %}
+    <p>Synkronisering til en kalender kræver, at Gårdopgaver kører som app i Home Assistant.</p>
+    <p class="muted small">Uden Home Assistant kan du i stedet abonnere på planen fra din profil (iCal-link).</p>
+  {% elif error %}
+    <div class="flash flash-error">Kunne ikke hente kalendere fra Home Assistant: {{ error }}</div>
+  {% else %}
+    <p>Vælg en kalender fra Home Assistant – fx jeres Google Kalender. Alle planlagte tider lægges ind som begivenheder,
+       og flyttes eller slettes en tid her, følger kalenderen med.</p>
+    {% set usable = calendars|selectattr('can_sync')|list %}
+    {% if not usable %}
+      <div class="flash flash-warning">
+        Home Assistant har ingen kalender, som Gårdopgaver kan skrive i.
+        Tilføj integrationen <strong>Google Calendar</strong> (eller <strong>Local Calendar</strong>) under
+        Indstillinger → Enheder og tjenester, og kom tilbage hertil.
+      </div>
+    {% endif %}
+    <form method="post">
+      {{ csrf() }}
+      <label>Synkronisér planlagte tider til
+        <select name="calendar">
+          <option value="">Ingen (slået fra)</option>
+          {% for c in calendars %}
+            <option value="{{ c.entity_id }}" {{ 'selected' if c.entity_id == current }} {{ '' if c.can_sync else 'disabled' }}>
+              {{ c.name }}{{ '' if c.can_sync else ' – kan ikke bruges (skrivebeskyttet)' }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <div class="actions">
+        <button class="btn btn-primary" name="action" value="save">Gem</button>
+        {% if current %}<button class="btn" name="action" value="sync_now">Synkronisér nu</button>{% endif %}
+      </div>
+    </form>
+
+    {% if status and current %}
+      <p class="small {{ 'muted' if status.ok else 'danger-text' }}" style="margin-top:1rem">
+        Seneste synkronisering {{ status.time|dato_tid }}:
+        {% if status.ok %}
+          {{ status.count }} tid{{ 'er' if status.count != 1 }} i kalenderen{% if status.created or status.removed %}
+          ({{ status.created }} oprettet, {{ status.removed }} fjernet){% endif %}.
+        {% else %}
+          fejl – {{ status.error }}
+        {% endif %}
+      </p>
+    {% endif %}
+    <p class="small muted">
+      Tider, der sluttede for mere end 30 dage siden, lægges ikke ind. Slås synkroniseringen fra eller skiftes kalender,
+      fjernes Gårdopgavers begivenheder fra den gamle kalender. Andre begivenheder i kalenderen røres aldrig.
+    </p>
+  {% endif %}
+</section>
+{% endblock %}

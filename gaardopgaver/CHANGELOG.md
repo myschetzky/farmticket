@@ -1,5 +1,10 @@
 # Ændringslog
 
+## 1.2.0
+- Nyt: planlagte tider kan lægges automatisk i en valgfri kalender i Home Assistant, fx jeres
+  Google Kalender. Vælges under Gårdopgaver → Indstillinger. Flyttes eller slettes en tid, følger
+  kalenderen med.
+
 ## 1.1.1
 - Rettet: siden viste "404: Not Found" i Home Assistant. Appen startede uden sine
   miljøvariabler (s6-overlay nulstiller dem) og troede derfor, at den kørte uden for Home Assistant.

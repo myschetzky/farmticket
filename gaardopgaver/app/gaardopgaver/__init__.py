@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Flask, abort, g, redirect, render_template, request, session, url_for
 
-from . import auth, db, ha, schedule, tickets
+from . import auth, db, ha, schedule, settings, tickets
 from .constants import CATEGORIES, PRIORITIES, STATUS_LABELS
 from .dates import fmt_date, fmt_datetime, fmt_hours, fmt_time
 
@@ -45,6 +45,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth.bp)
     app.register_blueprint(tickets.bp)
     app.register_blueprint(schedule.bp)
+    app.register_blueprint(settings.bp)
     app.cli.add_command(auth.reset_password_command)
     if app.config["HA_MODE"]:
         ha.init_app(app)
