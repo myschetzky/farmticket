@@ -2,7 +2,7 @@
 
 from datetime import date, datetime, timedelta
 
-from flask import Blueprint, Response, abort, flash, g, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, current_app, flash, g, redirect, render_template, request, url_for
 
 from . import db
 from .auth import safe_target
@@ -372,7 +372,8 @@ def ical_feed(token):
             desc.append(f"Udføres af: {s['user_name']}")
         if s["note"]:
             desc.append(s["note"])
-        desc.append(url_for("tickets.ticket_detail", ticket_id=s["ticket_id"], _external=True))
+        if not current_app.config["HA_MODE"]:  # inde i Home Assistant giver et direkte link ingen mening
+            desc.append(url_for("tickets.ticket_detail", ticket_id=s["ticket_id"], _external=True))
         lines += [
             "BEGIN:VEVENT",
             f"UID:slot-{s['id']}@gaardopgaver",

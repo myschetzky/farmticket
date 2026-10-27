@@ -3,7 +3,7 @@
 {% block content %}
 <div class="detail-head">
   <h1>Brugere</h1>
-  <a class="btn btn-primary" href="{{ url_for('auth.user_new') }}">+ Ny bruger</a>
+  {% if not HA_MODE %}<a class="btn btn-primary" href="{{ url_for('auth.user_new') }}">+ Ny bruger</a>{% endif %}
 </div>
 <table class="table card">
   <thead><tr><th>Navn</th><th>Brugernavn</th><th>Rolle</th><th>Status</th><th></th></tr></thead>
@@ -19,5 +19,6 @@
   {% endfor %}
   </tbody>
 </table>
+{% if HA_MODE %}<p class="small muted">Brugere oprettes automatisk, første gang de åbner Gårdopgaver i Home Assistant. Administratorer i Home Assistant er automatisk administratorer her.</p>{% endif %}
 <p class="small muted">Alle brugere kan oprette, redigere og planlægge opgaver. Administratorer kan desuden administrere brugere og slette opgaver.</p>
 {% endblock %}

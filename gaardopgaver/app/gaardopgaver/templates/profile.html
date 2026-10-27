@@ -5,20 +5,30 @@
 <h1>{{ g.user.name }}</h1>
 <div class="two-col">
   <section class="card">
+    {% if HA_MODE %}
+    <h2>Kalender på Home Assistant-dashboardet</h2>
+    <p>Tilføj integrationen <strong>Remote Calendar</strong> (Indstillinger → Enheder og tjenester → Tilføj integration) med navnet <em>Gårdopgaver</em> og denne adresse. Så kan planen vises med et kalenderkort på dashboardet.</p>
+    {% else %}
     <h2>Kalender på telefonen</h2>
     <p>Abonnér på planen i telefonens kalender (iPhone: Indstillinger → Kalender → Konti → Tilføj konto → Andet → Tilføj abonneret kalender; Google Kalender: “Fra webadresse”).</p>
+    {% endif %}
     <label>Alle opgaver
-      <input readonly value="{{ url_for('schedule.ical_feed', token=g.user.ical_token, _external=True) }}" onclick="this.select()">
+      <input readonly value="{{ feed_all }}" onclick="this.select()">
     </label>
     <label>Kun mine tider
-      <input readonly value="{{ url_for('schedule.ical_feed', token=g.user.ical_token, kun_mine=1, _external=True) }}" onclick="this.select()">
+      <input readonly value="{{ feed_mine }}" onclick="this.select()">
     </label>
+    {% if HA_MODE %}
+    <p class="small muted">Adressen virker kun inde fra Home Assistant. Til telefonens kalender: åbn en port under appens <em>Netværk</em>-indstillinger, og erstat <code>{{ feed_all.split('/')[2] }}</code> med Home Assistants IP-adresse og den valgte port.</p>
+    {% else %}
     <p class="small muted">Linket er personligt og kræver ikke login – del det ikke. Telefonen skal kunne nå serveren (samme netværk, eller via fx VPN).</p>
+    {% endif %}
     <form method="post" onsubmit="return confirm('Det gamle link holder op med at virke. Fortsæt?');">
       {{ csrf() }}
       <button class="btn btn-small" name="action" value="new_token">Lav nyt link</button>
     </form>
   </section>
+  {% if not g.user.ha_user_id %}
   <section class="card">
     <h2>Skift adgangskode</h2>
     <form method="post">
@@ -34,5 +44,11 @@
       <button class="btn btn-danger">Log ud</button>
     </form>
   </section>
+  {% else %}
+  <section class="card">
+    <h2>Login</h2>
+    <p>Du er logget ind via Home Assistant. Adgangskode og log ud styres dér.</p>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

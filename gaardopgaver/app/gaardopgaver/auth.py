@@ -5,7 +5,7 @@ from functools import wraps
 
 import click
 from flask.cli import with_appcontext
-from flask import Blueprint, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
@@ -150,7 +150,15 @@ def profile():
             )
             flash("Nyt kalender-link oprettet. Det gamle link virker ikke længere.", "success")
         return redirect(url_for("auth.profile"))
-    return render_template("profile.html")
+
+    if current_app.config["HA_MODE"]:
+        from .ha import feed_base_url
+
+        # Stien uden ingress-præfiks, så Home Assistant kan hente feedet direkte på det interne netværk.
+        base = feed_base_url() + f"/kalender/feed/{g.user['ical_token']}.ics"
+    else:
+        base = url_for("schedule.ical_feed", token=g.user["ical_token"], _external=True)
+    return render_template("profile.html", feed_all=base, feed_mine=base + "?kun_mine=1")
 
 
 @bp.route("/brugere")

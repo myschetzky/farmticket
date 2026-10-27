@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Flask, abort, g, redirect, render_template, request, session, url_for
 
-from . import auth, db, schedule, tickets
+from . import auth, db, ha, schedule, tickets
 from .constants import CATEGORIES, PRIORITIES, STATUS_LABELS
 from .dates import fmt_date, fmt_datetime, fmt_hours, fmt_time
 
@@ -24,6 +24,9 @@ def create_app(test_config=None):
         CSRF_ENABLED=True,
         SESSION_COOKIE_SAMESITE="Lax",
         PERMANENT_SESSION_LIFETIME=60 * 60 * 24 * 90,  # forbliv logget ind i 90 dage
+        # Sat af Home Assistant-appen (se Dockerfile): ingress, automatisk login og sensorer.
+        HA_MODE=os.environ.get("GAARD_HA") == "1",
+        HA_PORT=int(os.environ.get("GAARD_PORT", "8099")),
     )
     if test_config:
         app.config.update(test_config)
@@ -43,6 +46,8 @@ def create_app(test_config=None):
     app.register_blueprint(tickets.bp)
     app.register_blueprint(schedule.bp)
     app.cli.add_command(auth.reset_password_command)
+    if app.config["HA_MODE"]:
+        ha.init_app(app)
 
     app.jinja_env.filters.update(
         dato=fmt_date, dato_tid=fmt_datetime, tid=fmt_time, timer=fmt_hours
@@ -51,6 +56,7 @@ def create_app(test_config=None):
         PRIORITIES=PRIORITIES,
         STATUS_LABELS=STATUS_LABELS,
         CATEGORIES=CATEGORIES,
+        HA_MODE=app.config["HA_MODE"],
         csrf_token=_csrf_token,
     )
 
@@ -72,6 +78,8 @@ def create_app(test_config=None):
             )
             if g.user is None:
                 session.clear()
+        if app.config["HA_MODE"]:
+            ha.guard_request()
 
         if request.method == "POST" and app.config["CSRF_ENABLED"]:
             sent = request.form.get("csrf_token", "")
@@ -83,7 +91,7 @@ def create_app(test_config=None):
         if not db.has_users():
             return redirect(url_for("auth.setup"))
         if g.user is None:
-            return redirect(url_for("auth.login", next=request.full_path))
+            return redirect(url_for("auth.login", next=request.script_root + request.full_path))
         return None
 
     return app

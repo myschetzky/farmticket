@@ -6,6 +6,7 @@
 """
 
 import argparse
+import logging
 import socket
 
 from gaardopgaver import create_app
@@ -17,6 +18,7 @@ def main():
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--dev", action="store_true", help="Udviklingstilstand")
     args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
     app = create_app()
     print(f"Gårdopgaver kører på http://localhost:{args.port}")

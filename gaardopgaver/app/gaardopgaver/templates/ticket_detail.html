@@ -41,7 +41,7 @@
     <h2>Tid i kalenderen</h2>
     {% for s in slots %}
       <div class="slot-row {{ 'past' if s.ends_at < now }}">
-        <a href="{{ url_for('schedule.slot_edit', slot_id=s.id, next=request.path) }}">
+        <a href="{{ url_for('schedule.slot_edit', slot_id=s.id, next=request.script_root ~ request.path) }}">
           <strong>{{ s.starts_at|dato }} kl. {{ s.starts_at|tid }}–{{ s.ends_at|tid }}</strong>
         </a>
         <span class="meta">{% if s.user_name %}👤 {{ s.user_name }}{% endif %}{% if s.note %} · {{ s.note }}{% endif %}</span>
@@ -50,7 +50,7 @@
       <p class="muted">Ingen tid planlagt endnu.</p>
     {% endfor %}
     {% if ticket.status not in ('udfoert', 'annulleret') %}
-    <a class="btn btn-primary" href="{{ url_for('schedule.slot_new', opgave=ticket.id, next=request.path) }}">+ Planlæg tid</a>
+    <a class="btn btn-primary" href="{{ url_for('schedule.slot_new', opgave=ticket.id, next=request.script_root ~ request.path) }}">+ Planlæg tid</a>
     {% endif %}
   </section>
 </div>

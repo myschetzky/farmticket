@@ -4,6 +4,19 @@
 {% block content %}
 <h1>Overblik</h1>
 
+{% if no_tickets %}
+<div class="card">
+  <h2>Kom i gang</h2>
+  <p>Der er ingen opgaver endnu. <a href="{{ url_for('tickets.ticket_new') }}">Opret den første opgave</a>{% if g.user.is_admin %}, eller indlæs de tre eksempler (ridebanelys, stolper og julelys){% endif %}.</p>
+  {% if g.user.is_admin %}
+  <form method="post" action="{{ url_for('tickets.load_examples') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">Indlæs eksempelopgaver</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+
 <div class="stats">
   {% for p, label in PRIORITIES.items() %}
   <a class="stat prio-border-{{ p }}" href="{{ url_for('tickets.ticket_list', prioritet=p) }}">

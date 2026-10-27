@@ -218,6 +218,7 @@ def dashboard():
         for r in db.query(f"SELECT priority, COUNT(*) AS n FROM tickets t WHERE {OPEN_SQL} GROUP BY priority")
     }
     waiting = db.query("SELECT COUNT(*) AS n FROM tickets WHERE status = 'venter'", one=True)["n"]
+    no_tickets = db.query("SELECT 1 FROM tickets LIMIT 1", one=True) is None
     return render_template(
         "dashboard.html",
         today=today,
@@ -227,7 +228,17 @@ def dashboard():
         overdue=overdue,
         counts=counts,
         waiting=waiting,
+        no_tickets=no_tickets,
     )
+
+
+@bp.route("/eksempler", methods=["POST"])
+@admin_required
+def load_examples():
+    if db.query("SELECT 1 FROM tickets LIMIT 1", one=True) is None:
+        create_example_tickets(g.user["id"])
+        flash("De tre eksempelopgaver er oprettet.", "success")
+    return redirect(url_for("tickets.ticket_list"))
 
 
 @bp.route("/opgaver")

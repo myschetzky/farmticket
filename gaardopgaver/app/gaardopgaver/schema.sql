@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_admin      INTEGER NOT NULL DEFAULT 0,
     active        INTEGER NOT NULL DEFAULT 1,
     ical_token    TEXT    NOT NULL UNIQUE,
-    created_at    TEXT    NOT NULL
+    created_at    TEXT    NOT NULL,
+    ha_user_id    TEXT                             -- Home Assistant-bruger (kun i HA-tilstand)
 );
 
 CREATE TABLE IF NOT EXISTS tickets (

@@ -13,12 +13,16 @@
     <label>Brugernavn * <input name="username" required value="{{ form.username }}" autocapitalize="none"></label>
   {% endif %}
   <label class="check"><input type="checkbox" name="is_admin" value="1" {{ 'checked' if (user and user.is_admin) or form.is_admin }}> Administrator</label>
+  {% if not (user and user.ha_user_id) %}
   <label>{{ 'Ny adgangskode (lad stå tom for at beholde)' if user else 'Adgangskode *' }}
     <input type="password" name="password" minlength="6" {{ '' if user else 'required' }} autocomplete="new-password">
   </label>
   <label>Gentag adgangskode
     <input type="password" name="password2" minlength="6" {{ '' if user else 'required' }} autocomplete="new-password">
   </label>
+  {% else %}
+  <p class="small muted">Logger ind via Home Assistant.</p>
+  {% endif %}
   <div class="actions">
     <button class="btn btn-primary" type="submit">Gem</button>
     <a class="btn btn-link" href="{{ url_for('auth.users') }}">Annullér</a>

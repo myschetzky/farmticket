@@ -1,0 +1,8 @@
+configuration:
+  kalender_entitet:
+    name: Kalender-entitet
+    description: >-
+      Valgfri. Entiteten fra integrationen Remote Calendar (fx calendar.gardopgaver).
+      Den opdateres straks, når noget ændres i Gårdopgaver.
+network:
+  8099/tcp: Valgfri. Kun til kalender-abonnement fra telefoner. Lad feltet stå tomt, hvis det ikke bruges.

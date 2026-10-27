@@ -27,7 +27,18 @@ def close_db(_exc=None):
 
 def init_db():
     schema = (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
-    get_db().executescript(schema)
+    conn = get_db()
+    conn.executescript(schema)
+    _migrate(conn)
+
+
+def _migrate(conn):
+    """Små skemaændringer for databaser oprettet af en ældre version."""
+    user_cols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+    if "ha_user_id" not in user_cols:
+        conn.execute("ALTER TABLE users ADD COLUMN ha_user_id TEXT")
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_ha ON users(ha_user_id)")
+    conn.commit()
 
 
 def query(sql, args=(), one=False):

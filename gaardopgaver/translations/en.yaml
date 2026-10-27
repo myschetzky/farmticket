@@ -1,0 +1,8 @@
+configuration:
+  kalender_entitet:
+    name: Calendar entity
+    description: >-
+      Optional. The entity from the Remote Calendar integration (e.g. calendar.gardopgaver).
+      It is refreshed immediately when something changes in Gårdopgaver.
+network:
+  8099/tcp: Optional. Only for calendar subscriptions from phones. Leave empty if unused.
